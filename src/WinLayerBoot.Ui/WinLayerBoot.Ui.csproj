@@ -1,0 +1,84 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<!-- wlb-ui.exe: TUI and window, latest .NET, single-file publish -->
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<AssemblyName>wlb-ui</AssemblyName>
+		<RootNamespace>WinLayerBoot</RootNamespace>
+		<!-- Custom Program.Main: the TUI does not start WinUI, only the window does -->
+		<DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
+		<TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+		<TargetPlatformMinVersion>10.0.17763.0</TargetPlatformMinVersion>
+		<ApplicationManifest>app.manifest</ApplicationManifest>
+		<Platforms>x64</Platforms>
+		<RuntimeIdentifiers>win-x64</RuntimeIdentifiers>
+		<PublishProfile>win-$(Platform).pubxml</PublishProfile>
+		<UseWinUI>true</UseWinUI>
+		<WinUISDKReferences>false</WinUISDKReferences>
+		<EnableMsixTooling>true</EnableMsixTooling>
+		<Nullable>enable</Nullable>
+		<WindowsPackageType>None</WindowsPackageType>
+		<WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+		<InvariantGlobalization>false</InvariantGlobalization>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<Content Include="Assets\SplashScreen.scale-200.png" />
+		<Content Include="Assets\LockScreenLogo.scale-200.png" />
+		<Content Include="Assets\Square150x150Logo.scale-200.png" />
+		<Content Include="Assets\Square44x44Logo.scale-200.png" />
+		<Content Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png" />
+		<Content Include="Assets\StoreLogo.png" />
+		<Content Include="Assets\Wide310x150Logo.scale-200.png" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<Manifest Include="$(ApplicationManifest)" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(DisableMsixProjectCapabilityAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
+		<ProjectCapability Include="Msix" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\WinLayerBoot.Core\WinLayerBoot.Core.csproj" />
+		<PackageReference Include="Microsoft.Windows.SDK.BuildTools" Version="10.0.28000.2705" />
+		<PackageReference Include="Microsoft.WindowsAppSDK" Version="2.5.1" />
+		<!-- TUI (tui command) -->
+		<PackageReference Include="Terminal.Gui" Version="2.5.0" />
+	</ItemGroup>
+
+	<!-- Terminal.Gui uses reflection and configuration binding, so keep it whole when trimming; page classes in this assembly derived from WinUI controls (CsWinRT composed types) must not be trimmed either -->
+	<ItemGroup>
+		<TrimmerRootAssembly Include="Terminal.Gui" />
+		<TrimmerRootAssembly Include="wlb-ui" />
+		<TrimmerRootAssembly Include="WinLayerBoot.Core" />
+		<!-- WMI COM classes are created only at run time; trimming their constructors causes MissingMethodException -->
+		<TrimmerRootAssembly Include="System.Management" />
+	</ItemGroup>
+
+	<PropertyGroup Condition="'$(DisableHasPackageAndPublishMenuAddedByProject)'!='true' and '$(EnableMsixTooling)'=='true'">
+		<HasPackageAndPublishMenu>true</HasPackageAndPublishMenu>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<PublishReadyToRun Condition="'$(Configuration)' == 'Debug'">False</PublishReadyToRun>
+		<PublishReadyToRun Condition="'$(Configuration)' != 'Debug'">True</PublishReadyToRun>
+		<PublishTrimmed Condition="'$(Configuration)' == 'Debug'">False</PublishTrimmed>
+		<PublishTrimmed Condition="'$(Configuration)' != 'Debug'">True</PublishTrimmed>
+		<TrimMode>partial</TrimMode>
+		<!-- Built-in COM is turned off by default when trimming, but WMI (System.Management) needs it -->
+		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
+		<DeployExe>V:\wlb-ui.exe</DeployExe>
+	</PropertyGroup>
+
+	<!-- After publishing, update V:\wlb-ui.exe (skip if there is no V:). A running exe cannot be overwritten but can be renamed: copy the new one first, move the old one aside and put the new one in place; if the old one is still running, delete it at the next publish -->
+	<Target Name="DeployExe" AfterTargets="Publish" Condition="Exists('$([System.IO.Path]::GetPathRoot($(DeployExe)))')">
+		<Copy SourceFiles="$(PublishDir)$(AssemblyName).exe" DestinationFiles="$(DeployExe).new" />
+		<Move SourceFiles="$(DeployExe)" DestinationFiles="$(DeployExe).old-$([System.DateTime]::Now.Ticks)" Condition="Exists('$(DeployExe)')" />
+		<Move SourceFiles="$(DeployExe).new" DestinationFiles="$(DeployExe)" />
+		<ItemGroup>
+			<OldDeployExe Include="$(DeployExe).old-*" />
+		</ItemGroup>
+		<Delete Files="@(OldDeployExe)" ContinueOnError="true" />
+		<Message Importance="high" Text="Updated $(DeployExe)" />
+	</Target>
+</Project>

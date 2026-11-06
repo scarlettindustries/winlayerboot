@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<!-- The same source is compiled twice: net48 for wlb.exe (command line, Web; uses the runtime that ships with the system), net10 for wlb-ui.exe (TUI, window) -->
+	<PropertyGroup>
+		<TargetFrameworks>net48;net10.0-windows</TargetFrameworks>
+		<AssemblyName>WinLayerBoot.Core</AssemblyName>
+		<RootNamespace>WinLayerBoot</RootNamespace>
+		<LangVersion>latest</LangVersion>
+		<Nullable>enable</Nullable>
+		<Platforms>x64</Platforms>
+		<PlatformTarget>x64</PlatformTarget>
+		<IsTrimmable Condition="'$(TargetFramework)' != 'net48'">true</IsTrimmable>
+	</PropertyGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+		<!-- Types the compiler needs for record, init, range syntax, etc. -->
+		<PackageReference Include="PolySharp" Version="1.15.0" PrivateAssets="all" />
+		<PackageReference Include="System.Text.Json" Version="10.0.0" />
+		<Reference Include="System.Management" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' != 'net48'">
+		<!-- WMI: provider for BCD and storage -->
+		<PackageReference Include="System.Management" Version="10.0.0" />
+	</ItemGroup>
+</Project>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Window
+    x:Class="WinLayerBoot.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:WinLayerBoot"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Title="WinLayerBoot">
+
+    <Window.SystemBackdrop>
+        <MicaBackdrop />
+    </Window.SystemBackdrop>
+
+    <NavigationView x:Name="Nav" IsBackButtonVisible="Collapsed" IsSettingsVisible="True" PaneDisplayMode="Left" OpenPaneLength="180"
+                    SelectionChanged="Nav_SelectionChanged">
+        <NavigationView.MenuItems>
+            <NavigationViewItem Content="Overview" Tag="overview" Icon="Home" />
+            <NavigationViewItemHeader Content="Create" />
+            <NavigationViewItem Content="Base disk" Tag="base" Icon="Save" />
+            <NavigationViewItem Content="Child disk" Tag="layer" Icon="Copy" />
+            <NavigationViewItem Content="Snapshot" Tag="snapshot" Icon="Camera" />
+            <NavigationViewItem Content="Export" Tag="export" Icon="Upload" />
+            <NavigationViewItem Content="Display" Tag="display" Icon="View" />
+            <NavigationViewItemHeader Content="Manage" />
+            <NavigationViewItem Content="Boot entries" Tag="entries" Icon="List" />
+        </NavigationView.MenuItems>
+        <Grid x:Name="Body" Padding="24,8,24,16" />
+    </NavigationView>
+</Window>

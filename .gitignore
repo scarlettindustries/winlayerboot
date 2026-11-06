@@ -1,0 +1,15 @@
+﻿# Visual Studio / .NET
+.vs/
+[Bb]in/
+[Oo]bj/
+*.user
+*.suo
+*.rsuser
+*.binlog
+
+# Local settings, exported presets, frontend environment: not in git
+config.json
+wlb-*-*.json
+.env
+.env.*
+!.env.example

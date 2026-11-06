@@ -1,0 +1,6 @@
+{
+  "profiles": {
+    "WinLayerBoot (Package)": { "commandName": "MsixPackage", "commandLineArgs": "gui" },
+    "WinLayerBoot (Unpackaged)": { "commandName": "Project", "commandLineArgs": "gui" }
+  }
+}

@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<!-- wlb.exe: CLI and web interface, .NET Framework 4.8 (built into Windows, no runtime to install). Dependent DLLs are packed into the exe by Costura, so there is only one file -->
+	<PropertyGroup>
+		<OutputType>Exe</OutputType>
+		<TargetFramework>net48</TargetFramework>
+		<AssemblyName>wlb</AssemblyName>
+		<RootNamespace>WinLayerBoot</RootNamespace>
+		<LangVersion>latest</LangVersion>
+		<Nullable>enable</Nullable>
+		<Platforms>x64</Platforms>
+		<PlatformTarget>x64</PlatformTarget>
+		<Prefer32Bit>false</Prefer32Bit>
+		<ApplicationManifest>app.manifest</ApplicationManifest>
+		<DeployExe>V:\wlb.exe</DeployExe>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\WinLayerBoot.Core\WinLayerBoot.Core.csproj" />
+		<Reference Include="System.Management" />
+		<PackageReference Include="PolySharp" Version="1.15.0" PrivateAssets="all" />
+		<PackageReference Include="Costura.Fody" Version="6.0.0" PrivateAssets="all" />
+		<PackageReference Include="Fody" Version="6.9.3" PrivateAssets="all" />
+	</ItemGroup>
+
+	<!-- Web interface (webui command): the build output of WinLayerBoot.WebUi, packed into the exe as embedded resources, logical name wwwroot/<relative path> -->
+	<ItemGroup>
+		<Content Remove="wwwroot\**" />
+		<None Remove="wwwroot\**" />
+		<EmbeddedResource Include="wwwroot\**" LogicalName="wwwroot/%(RecursiveDir)%(Filename)%(Extension)" />
+	</ItemGroup>
+
+	<!-- After publishing, update V:\wlb.exe (skipped if there is no V:). A running exe cannot be overwritten but can be renamed: copy the new one first, move the old one aside, then put the new one in place; if the old one is still running, delete it on the next publish -->
+	<Target Name="DeployExe" AfterTargets="Publish" Condition="Exists('$([System.IO.Path]::GetPathRoot($(DeployExe)))')">
+		<Copy SourceFiles="$(PublishDir)$(AssemblyName).exe" DestinationFiles="$(DeployExe).new" />
+		<Move SourceFiles="$(DeployExe)" DestinationFiles="$(DeployExe).old-$([System.DateTime]::Now.Ticks)" Condition="Exists('$(DeployExe)')" />
+		<Move SourceFiles="$(DeployExe).new" DestinationFiles="$(DeployExe)" />
+		<ItemGroup>
+			<OldDeployExe Include="$(DeployExe).old-*" />
+		</ItemGroup>
+		<Delete Files="@(OldDeployExe)" ContinueOnError="true" />
+		<Message Importance="high" Text="Updated $(DeployExe)" />
+	</Target>
+</Project>
